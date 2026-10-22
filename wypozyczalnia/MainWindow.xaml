@@ -50,7 +50,7 @@
                             Background="#2563EB"
                             Foreground="White"
                             FontSize="14"
-                            FontWeight="SemiBold"/>
+                            FontWeight="SemiBold" Click="Button_Click"/>
                 </StackPanel>
 
                 <ListView x:Name="listaSprzetu"

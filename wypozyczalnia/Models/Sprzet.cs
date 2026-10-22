@@ -13,6 +13,7 @@ namespace wypozyczalnia.Models
         public string NumerSeryjny { get; set; } = string.Empty;
         public string StanTechniczny { get; set; } = "Dobry";
         public bool CzyDostepny { get; set; } = true;
+        public string? OsobaWypozyczajaca { get; set; }
         public string Status => CzyDostepny ? "Dostępny" : "Wypożyczony";
     }
 }
