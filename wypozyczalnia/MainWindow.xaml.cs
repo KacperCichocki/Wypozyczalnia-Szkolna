@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Wypozyczalnia.Data;
 
 namespace wypozyczalnia
 {
@@ -19,6 +20,22 @@ namespace wypozyczalnia
         public MainWindow()
         {
             InitializeComponent();
+
+            listaSprzetu.ItemsSource = DaneTestowe.Sprzety;
+            txtSzukaj.Text = "";
+        }
+
+        private void txtSzukaj_TextChanged(
+            object sender,
+            TextChangedEventArgs e)
+        {
+            string fraza = txtSzukaj.Text.ToLower();
+
+            listaSprzetu.ItemsSource = DaneTestowe.Sprzety
+                .Where(s => s.Nazwa.ToLower().Contains(fraza)
+                         || s.Kategoria.ToLower().Contains(fraza)
+                         || s.NumerSeryjny.ToLower().Contains(fraza))
+                .ToList();
         }
     }
 }
