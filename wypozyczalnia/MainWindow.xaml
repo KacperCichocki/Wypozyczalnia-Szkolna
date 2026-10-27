@@ -4,6 +4,96 @@
         Title="Wypożyczalnia sprzętu szkolnego"
         Height="650" Width="1000"
         WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+
+    <!-- Nagłówki kolumn -->
+    <Style x:Key="ModernColumnHeader"
+           TargetType="{x:Type GridViewColumnHeader}">
+        <Setter Property="Background" Value="#F1F5F9"/>
+        <Setter Property="Foreground" Value="#64748B"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+
+    <!-- Wiersze listy -->
+    <Style x:Key="ModernHistoryItem"
+           TargetType="{x:Type ListViewItem}">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="44"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="BorderBrush" Value="#F1F5F9"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListViewItem}">
+                    <Border x:Name="RowBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="0">
+                        <GridViewRowPresenter
+                            Content="{TemplateBinding Content}"
+                            Columns="{Binding
+                                RelativeSource={RelativeSource
+                                    AncestorType={x:Type ListView}},
+                                Path=View.Columns}"
+                            VerticalAlignment="Center"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RowBorder"
+                                    Property="Background"
+                                    Value="#F8FAFC"/>
+                        </Trigger>
+
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="RowBorder"
+                                    Property="Background"
+                                    Value="#EFF6FF"/>
+                            <Setter Property="Foreground"
+                                    Value="#1D4ED8"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Cała lista -->
+    <Style x:Key="ModernHistoryList"
+           TargetType="{x:Type ListView}">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"
+                Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility"
+                Value="Auto"/>
+        <Setter Property="ItemContainerStyle"
+                Value="{StaticResource ModernHistoryItem}"/>
+    </Style>
+
+    <!-- Lista sprzętu -->
+    <Style x:Key="ModernEquipmentList"
+    TargetType="{x:Type ListView}"
+    BasedOn="{StaticResource ModernHistoryList}">
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
+    </Window.Resources>
 	<Grid Margin="15">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="200"/>
@@ -52,58 +142,72 @@
 				<!-- Obszar wyświetlania (Przełączany widok) -->
 				<Grid>
 					<!-- Lista sprzętu -->
-					<ListView x:Name="listaSprzetu" FontSize="14">
-						<ListView.ItemTemplate>
-							<DataTemplate>
-								<Border Padding="10" Margin="0,3" Background="#F8FAFC" CornerRadius="5">
-									<Grid>
-										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="*"/>
-											<ColumnDefinition Width="Auto"/>
-										</Grid.ColumnDefinitions>
-										<StackPanel>
-											<TextBlock Text="{Binding Nazwa}" FontWeight="Bold" FontSize="16"/>
-											<TextBlock Text="{Binding Kategoria}" Foreground="Gray" Margin="0,4,0,0"/>
-											<TextBlock Text="{Binding NumerSeryjny}" Foreground="Gray" FontSize="12"/>
-										</StackPanel>
-										<TextBlock Grid.Column="1"
-                                                   Text="{Binding Status}"
-                                                   VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   Margin="10,0,0,0"/>
-									</Grid>
-								</Border>
-							</DataTemplate>
-						</ListView.ItemTemplate>
-					</ListView>
+                    <ListView x:Name="listaSprzetu"
+                          Grid.Row="2"
+                          Style="{StaticResource ModernEquipmentList}"
+                          SelectionMode="Single">
 
-					<!-- Lista historii (domyślnie ukryta) -->
-					<ListView x:Name="listaHistorii" FontSize="14" Visibility="Collapsed">
-						<ListView.ItemTemplate>
-							<DataTemplate>
-								<Border Padding="10" Margin="0,3" Background="#F1F5F9" CornerRadius="5">
-									<Grid>
-										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="*"/>
-											<ColumnDefinition Width="Auto"/>
-										</Grid.ColumnDefinitions>
-										<StackPanel>
-											<TextBlock Text="{Binding NazwaSprzetu}" FontWeight="Bold" FontSize="16"/>
-											<TextBlock Text="{Binding TypAkcji}" Foreground="#2563EB" FontWeight="SemiBold" Margin="0,2,0,0"/>
-											<TextBlock Text="{Binding Osoba, StringFormat='Osoba: {0}'}" Foreground="Gray" FontSize="12"/>
-											<TextBlock Text="{Binding NumerSeryjny, StringFormat='Nr seryjny: {0}'}" Foreground="Gray" FontSize="12"/>
-										</StackPanel>
-										<TextBlock Grid.Column="1"
-                                                   Text="{Binding Data, StringFormat='dd.MM.yyyy HH:mm'}"
-                                                   VerticalAlignment="Center"
-                                                   Foreground="Gray"
-                                                   FontSize="12"/>
-									</Grid>
-								</Border>
-							</DataTemplate>
-						</ListView.ItemTemplate>
-					</ListView>
-				</Grid>
+                        <ListView.View>
+                            <GridView ColumnHeaderContainerStyle="{StaticResource ModernColumnHeader}">
+
+                                <GridViewColumn Header="NAZWA SPRZĘTU"
+                            DisplayMemberBinding="{Binding Nazwa}"
+                            Width="190"/>
+
+                                <GridViewColumn Header="KATEGORIA"
+                            DisplayMemberBinding="{Binding Kategoria}"
+                            Width="140"/>
+
+                                <GridViewColumn Header="NR SERYJNY"
+                            DisplayMemberBinding="{Binding NumerSeryjny}"
+                            Width="150"/>
+
+                                <GridViewColumn Header="STAN TECHNICZNY"
+                            DisplayMemberBinding="{Binding StanTechniczny}"
+                            Width="130"/>
+
+                                <GridViewColumn Header="STATUS"
+                            DisplayMemberBinding="{Binding Status}"
+                            Width="120"/>
+
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <!-- Lista historii (domyślnie ukryta) -->
+                    <ListView x:Name="listaHistorii"
+                          Style="{StaticResource ModernHistoryList}"
+                          Visibility="Collapsed"
+                          FontSize="13">
+
+                        <ListView.View>
+                            <GridView ColumnHeaderContainerStyle="{StaticResource ModernColumnHeader}">
+
+                                <GridViewColumn Header="SPRZĘT"
+                            DisplayMemberBinding="{Binding NazwaSprzetu}"
+                            Width="190"/>
+
+                                <GridViewColumn Header="AKCJA"
+                            DisplayMemberBinding="{Binding TypAkcji}"
+                            Width="120"/>
+
+                                <GridViewColumn Header="OSOBA"
+                            DisplayMemberBinding="{Binding Osoba}"
+                            Width="160"/>
+
+                                <GridViewColumn Header="NR SERYJNY"
+                            DisplayMemberBinding="{Binding NumerSeryjny}"
+                            Width="140"/>
+
+                                <GridViewColumn Header="DATA OPERACJI"
+                            DisplayMemberBinding="{Binding Data,
+                                StringFormat={}{0:dd.MM.yyyy HH:mm}}"
+                            Width="150"/>
+
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
 			</DockPanel>
 		</Border>
 	</Grid>
