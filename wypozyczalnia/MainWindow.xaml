@@ -21,8 +21,8 @@
                            FontWeight="Bold"
                            Margin="5,10,5,25"/>
 
-                <Button Content="Wypożycz sprzęt" Margin="0,4" Padding="10"/>
-                <Button Content="Oddaj sprzęt" Margin="0,4" Padding="10"/>
+                <Button Content="Wypożycz sprzęt" Margin="0,4" Padding="10" Click="WypozyczSprzet_Click"/>
+                <Button Content="Oddaj sprzęt" Margin="0,4" Padding="10" Click="Button_Click_1"/>
                 <Button Content="Moje wypożyczenia" Margin="0,4" Padding="10"/>
             </StackPanel>
         </Border>
@@ -44,7 +44,7 @@
                              VerticalContentAlignment="Center"
                              ToolTip="Wpisz nazwę sprzętu"/>
 
-                    <Button Content="Wypożycz wybrany sprzęt"
+                    <Button x:Name="btnAkcja" Content="Wypożycz wybrany sprzęt"
                             Height="40"
                             Margin="0,12,0,0"
                             Background="#2563EB"
