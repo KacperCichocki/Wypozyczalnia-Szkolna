@@ -4,95 +4,107 @@
         Title="Wypożyczalnia sprzętu szkolnego"
         Height="650" Width="1000"
         WindowStartupLocation="CenterScreen">
+	<Grid Margin="15">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="200"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
 
-    <Grid Margin="15">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <Border Grid.Column="0"
-                Padding="12"
-                Margin="0,0,12,0">
-
-            <StackPanel>
-                <TextBlock Text="Wypożyczalnia"
+		<!-- Menu boczne -->
+		<Border Grid.Column="0" Padding="12" Margin="0,0,12,0">
+			<StackPanel>
+				<TextBlock Text="Wypożyczalnia"
                            FontSize="22"
                            FontWeight="Bold"
                            Margin="5,10,5,25"/>
+				<Button Content="Wypożycz sprzęt" Margin="0,4" Padding="10" Click="WypozyczSprzet_Click"/>
+				<Button Content="Oddaj sprzęt" Margin="0,4" Padding="10" Click="Button_Click_1"/>
+				<Button x:Name="btnHistoria" Content="Historia wypożyczeń" Margin="0,4" Padding="10" Click="HistoriaWpozyczen_Click"/>
+			</StackPanel>
+		</Border>
 
-                <Button Content="Wypożycz sprzęt" Margin="0,4" Padding="10" Click="WypozyczSprzet_Click"/>
-                <Button Content="Oddaj sprzęt" Margin="0,4" Padding="10" Click="Button_Click_1"/>
-                <Button Content="Moje wypożyczenia" Margin="0,4" Padding="10"/>
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Column="1"
-                Padding="20">
-
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
-                    <TextBlock Text="Dostępny sprzęt"
+		<!-- Panel główny -->
+		<Border Grid.Column="1" Padding="20">
+			<DockPanel>
+				<!-- Górny panel (nagłówek, wyszukiwanie, przycisk akcji) -->
+				<StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+					<TextBlock x:Name="txtNaglowek"
+                               Text="Dostępny sprzęt"
                                FontSize="26"
                                FontWeight="Bold"
                                Margin="0,0,0,15"/>
-
-                    <TextBox x:Name="txtSzukaj"
+					<TextBox x:Name="txtSzukaj"
                              Height="35"
                              FontSize="14"
                              Padding="8"
                              VerticalContentAlignment="Center"
-                             ToolTip="Wpisz nazwę sprzętu"/>
-
-                    <Button x:Name="btnAkcja" Content="Wypożycz wybrany sprzęt"
+                             ToolTip="Wpisz nazwę sprzętu"
+                             TextChanged="txtSzukaj_TextChanged"/>
+					<Button x:Name="btnAkcja" Content="Wypożycz wybrany sprzęt"
                             Height="40"
                             Margin="0,12,0,0"
                             Background="#2563EB"
                             Foreground="White"
                             FontSize="14"
                             FontWeight="SemiBold" Click="Button_Click"/>
-                </StackPanel>
+				</StackPanel>
 
-                <ListView x:Name="listaSprzetu"
-                  Grid.Row="2"
-                  FontSize="14">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="10"
-                            Margin="0,3"
-                            Background="#F8FAFC"
-                            CornerRadius="5">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+				<!-- Obszar wyświetlania (Przełączany widok) -->
+				<Grid>
+					<!-- Lista sprzętu -->
+					<ListView x:Name="listaSprzetu" FontSize="14">
+						<ListView.ItemTemplate>
+							<DataTemplate>
+								<Border Padding="10" Margin="0,3" Background="#F8FAFC" CornerRadius="5">
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="*"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<StackPanel>
+											<TextBlock Text="{Binding Nazwa}" FontWeight="Bold" FontSize="16"/>
+											<TextBlock Text="{Binding Kategoria}" Foreground="Gray" Margin="0,4,0,0"/>
+											<TextBlock Text="{Binding NumerSeryjny}" Foreground="Gray" FontSize="12"/>
+										</StackPanel>
+										<TextBlock Grid.Column="1"
+                                                   Text="{Binding Status}"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="SemiBold"
+                                                   Margin="10,0,0,0"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ListView.ItemTemplate>
+					</ListView>
 
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Nazwa}"
-                                           FontWeight="Bold"
-                                           FontSize="16"/>
-
-                                        <TextBlock Text="{Binding Kategoria}"
-                                           Foreground="Gray"
-                                           Margin="0,4,0,0"/>
-
-                                        <TextBlock Text="{Binding NumerInwentarzowy}"
-                                           Foreground="Gray"
-                                           FontSize="12"/>
-                                    </StackPanel>
-
-                                    <TextBlock Grid.Column="1"
-                                       Text="{Binding Status}"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       Margin="10,0,0,0"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </DockPanel>
-        </Border>
-    </Grid>
+					<!-- Lista historii (domyślnie ukryta) -->
+					<ListView x:Name="listaHistorii" FontSize="14" Visibility="Collapsed">
+						<ListView.ItemTemplate>
+							<DataTemplate>
+								<Border Padding="10" Margin="0,3" Background="#F1F5F9" CornerRadius="5">
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="*"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<StackPanel>
+											<TextBlock Text="{Binding NazwaSprzetu}" FontWeight="Bold" FontSize="16"/>
+											<TextBlock Text="{Binding TypAkcji}" Foreground="#2563EB" FontWeight="SemiBold" Margin="0,2,0,0"/>
+											<TextBlock Text="{Binding Osoba, StringFormat='Osoba: {0}'}" Foreground="Gray" FontSize="12"/>
+											<TextBlock Text="{Binding NumerSeryjny, StringFormat='Nr seryjny: {0}'}" Foreground="Gray" FontSize="12"/>
+										</StackPanel>
+										<TextBlock Grid.Column="1"
+                                                   Text="{Binding Data, StringFormat='dd.MM.yyyy HH:mm'}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   FontSize="12"/>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ListView.ItemTemplate>
+					</ListView>
+				</Grid>
+			</DockPanel>
+		</Border>
+	</Grid>
 </Window>

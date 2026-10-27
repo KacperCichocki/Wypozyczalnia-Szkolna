@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using wypozyczalnia.Models;
 
 namespace Wypozyczalnia.Data
@@ -51,5 +52,7 @@ namespace Wypozyczalnia.Data
                 CzyDostepny = true
             }
         };
+
+        public static ObservableCollection<HistoriaWpisu> Historia { get; set; } = new ObservableCollection<HistoriaWpisu>();
     }
 }

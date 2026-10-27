@@ -82,12 +82,17 @@ namespace wypozyczalnia
             wybranySprzet.OsobaWypozyczajaca = oknoWypozyczenia.OsobaWypozyczajaca;
             wybranySprzet.CzyDostepny = false;
 
-            string fraza = txtSzukaj.Text.ToLower();
-            listaSprzetu.ItemsSource = DaneTestowe.Sprzety
-                .Where(s => s.Nazwa.ToLower().Contains(fraza)
-                         || s.Kategoria.ToLower().Contains(fraza)
-                         || s.NumerSeryjny.ToLower().Contains(fraza))
-                .ToList();
+            // ZAPIS DO HISTORII
+            DaneTestowe.Historia.Add(new HistoriaWpisu
+            {
+                Data = DateTime.Now,
+                NazwaSprzetu = wybranySprzet.Nazwa,
+                NumerSeryjny = wybranySprzet.NumerSeryjny,
+                Osoba = wybranySprzet.OsobaWypozyczajaca,
+                TypAkcji = "Wypożyczenie"
+            });
+
+            OdswiezListe();
 
             MessageBox.Show(
                 $"Sprzęt został wypożyczony osobie: {wybranySprzet.OsobaWypozyczajaca}.",
@@ -119,6 +124,17 @@ namespace wypozyczalnia
             }
 
             string osoba = wybranySprzet.OsobaWypozyczajaca ?? "nieznanej osobie";
+
+            // ZAPIS DO HISTORII
+            DaneTestowe.Historia.Add(new HistoriaWpisu
+            {
+                Data = DateTime.Now,
+                NazwaSprzetu = wybranySprzet.Nazwa,
+                NumerSeryjny = wybranySprzet.NumerSeryjny,
+                Osoba = osoba,
+                TypAkcji = "Zwrot"
+            });
+
             wybranySprzet.OsobaWypozyczajaca = null;
             wybranySprzet.CzyDostepny = true;
             OdswiezListe();
@@ -145,6 +161,13 @@ namespace wypozyczalnia
             trybZwrotu = false;
             btnAkcja.Content = "Wypożycz wybrany sprzęt";
             btnAkcja.Background = Brushes.Blue;
+
+            // Powrót do widoku sprzętu
+            txtNaglowek.Text = "Dostępny sprzęt";
+            txtSzukaj.Visibility = Visibility.Visible;
+            btnAkcja.Visibility = Visibility.Visible;
+            listaHistorii.Visibility = Visibility.Collapsed;
+            listaSprzetu.Visibility = Visibility.Visible;
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -152,6 +175,25 @@ namespace wypozyczalnia
             trybZwrotu = true;
             btnAkcja.Content = "Zwróć wybrany sprzęt";
             btnAkcja.Background = Brushes.Green;
+
+            // Powrót do widoku sprzętu
+            txtNaglowek.Text = "Dostępny sprzęt";
+            txtSzukaj.Visibility = Visibility.Visible;
+            btnAkcja.Visibility = Visibility.Visible;
+            listaHistorii.Visibility = Visibility.Collapsed;
+            listaSprzetu.Visibility = Visibility.Visible;
+        }
+
+        private void HistoriaWpozyczen_Click(object sender, RoutedEventArgs e)
+        {
+            // Przełączenie widoku na historię
+            txtNaglowek.Text = "Historia wypożyczeń";
+            txtSzukaj.Visibility = Visibility.Collapsed;
+            btnAkcja.Visibility = Visibility.Collapsed;
+
+            listaSprzetu.Visibility = Visibility.Collapsed;
+            listaHistorii.ItemsSource = DaneTestowe.Historia;
+            listaHistorii.Visibility = Visibility.Visible;
         }
     }
 }
