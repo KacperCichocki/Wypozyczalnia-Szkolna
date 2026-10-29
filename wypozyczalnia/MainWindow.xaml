@@ -18,9 +18,8 @@
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
         <Setter Property="BorderBrush" Value="#E2E8F0"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        <Setter Property="Cursor" Value="Arrow"/>
-        <Setter Property="IsHitTestVisible" Value="False"/>
-    </Style>
+            <Setter Property="Cursor" Value="Arrow"/>
+        </Style>
 
     <!-- Wiersze listy -->
     <Style x:Key="ModernHistoryItem"
@@ -143,12 +142,32 @@
 				<Grid>
 					<!-- Lista sprzętu -->
                     <ListView x:Name="listaSprzetu"
-                          Grid.Row="2"
-                          Style="{StaticResource ModernEquipmentList}"
-                          SelectionMode="Single">
+          Grid.Row="2"
+          Style="{StaticResource ModernEquipmentList}"
+          SelectionMode="Single">
 
                         <ListView.View>
                             <GridView ColumnHeaderContainerStyle="{StaticResource ModernColumnHeader}">
+
+                                <!-- Zaznaczanie wszystkich -->
+                                <GridViewColumn Width="45">
+                                    <GridViewColumn.Header>
+                                        <CheckBox x:Name="chkZaznaczWszystkie"
+                              ToolTip="Zaznacz wszystkie dostępne przedmioty"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Checked="chkZaznaczWszystkie_Checked"
+                              Unchecked="chkZaznaczWszystkie_Unchecked"/>
+                                    </GridViewColumn.Header>
+
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding CzyZaznaczony, Mode=TwoWay}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="NAZWA SPRZĘTU"
                             DisplayMemberBinding="{Binding Nazwa}"

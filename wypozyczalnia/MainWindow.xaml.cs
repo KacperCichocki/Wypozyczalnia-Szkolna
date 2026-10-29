@@ -10,6 +10,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using wypozyczalnia.Models;
 using Wypozyczalnia.Data;
+using System.Linq;
 
 namespace wypozyczalnia
 {
@@ -27,18 +28,44 @@ namespace wypozyczalnia
             listaSprzetu.ItemsSource = DaneTestowe.Sprzety;
             txtSzukaj.Text = "";
         }
+        private void chkZaznaczWszystkie_Checked(
+    object sender, RoutedEventArgs e)
+        {
+            ZaznaczWidoczne(true);
+        }
+
+        private void chkZaznaczWszystkie_Unchecked(
+            object sender, RoutedEventArgs e)
+        {
+            ZaznaczWidoczne(false);
+        }
+
+        private void ZaznaczWidoczne(bool zaznacz)
+        {
+            foreach (Sprzet sprzet in listaSprzetu.Items)
+            {
+                if (trybZwrotu)
+                {
+                    sprzet.CzyZaznaczony = zaznacz && !sprzet.CzyDostepny;
+                }
+                else
+                {
+                    sprzet.CzyZaznaczony = zaznacz && sprzet.CzyDostepny;
+                }
+            }
+
+            listaSprzetu.Items.Refresh();
+        }
 
         private void txtSzukaj_TextChanged(
-            object sender,
-            TextChangedEventArgs e)
+            object sender, TextChangedEventArgs e)
         {
-            string fraza = txtSzukaj.Text.ToLower();
+            foreach (Sprzet sprzet in DaneTestowe.Sprzety)
+                sprzet.CzyZaznaczony = false;
 
-            listaSprzetu.ItemsSource = DaneTestowe.Sprzety
-                .Where(s => s.Nazwa.ToLower().Contains(fraza)
-                         || s.Kategoria.ToLower().Contains(fraza)
-                         || s.NumerSeryjny.ToLower().Contains(fraza))
-                .ToList();
+            chkZaznaczWszystkie.IsChecked = false;
+
+            OdswiezListe();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -49,24 +76,26 @@ namespace wypozyczalnia
                 return;
             }
 
-            if (listaSprzetu.SelectedItem is not Sprzet wybranySprzet)
-            {
-                MessageBox.Show(
-                    "Najpierw wybierz sprzęt z listy.",
-                    "Brak wyboru",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
-            }
+            var zaznaczone = DaneTestowe.Sprzety
+                .Where(s => s.CzyZaznaczony && s.CzyDostepny)
+                .ToList();
 
-            if (!wybranySprzet.CzyDostepny)
+            if (zaznaczone.Count == 0)
             {
-                MessageBox.Show(
-                    "Ten sprzęt jest już wypożyczony.",
-                    "Sprzęt niedostępny",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
+                if (listaSprzetu.SelectedItem is Sprzet wybrany
+                    && wybrany.CzyDostepny)
+                {
+                    zaznaczone.Add(wybrany);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Zaznacz checkboxem lub wybierz dostępny sprzęt.",
+                        "Brak wyboru",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                    return;
+                }
             }
 
             var oknoWypozyczenia = new WypozyczenieWindow
@@ -75,76 +104,103 @@ namespace wypozyczalnia
             };
 
             if (oknoWypozyczenia.ShowDialog() != true)
-            {
                 return;
+
+            string osoba = oknoWypozyczenia.OsobaWypozyczajaca;
+
+            foreach (Sprzet sprzet in zaznaczone)
+            {
+                sprzet.OsobaWypozyczajaca = osoba;
+                sprzet.CzyDostepny = false;
+                sprzet.CzyZaznaczony = false;
+
+                DaneTestowe.Historia.Add(new HistoriaWpisu
+                {
+                    Data = DateTime.Now,
+                    NazwaSprzetu = sprzet.Nazwa,
+                    NumerSeryjny = sprzet.NumerSeryjny,
+                    Osoba = osoba,
+                    TypAkcji = "Wypożyczenie"
+                });
             }
 
-            wybranySprzet.OsobaWypozyczajaca = oknoWypozyczenia.OsobaWypozyczajaca;
-            wybranySprzet.CzyDostepny = false;
-
-            // ZAPIS DO HISTORII
-            DaneTestowe.Historia.Add(new HistoriaWpisu
-            {
-                Data = DateTime.Now,
-                NazwaSprzetu = wybranySprzet.Nazwa,
-                NumerSeryjny = wybranySprzet.NumerSeryjny,
-                Osoba = wybranySprzet.OsobaWypozyczajaca,
-                TypAkcji = "Wypożyczenie"
-            });
-
+            chkZaznaczWszystkie.IsChecked = false;
             OdswiezListe();
+            
+            string liczbaPrzedmiotow = zaznaczone.Count == 1
+                ? "przedmiot"
+                : zaznaczone.Count >= 2 && zaznaczone.Count <= 4
+                    ? "przedmioty"
+                    : "przedmiotów";
 
             MessageBox.Show(
-                $"Sprzęt został wypożyczony osobie: {wybranySprzet.OsobaWypozyczajaca}.",
+                $"Wypożyczono {zaznaczone.Count} {liczbaPrzedmiotow} osobie: {osoba}.",
                 "Wypożyczenie zapisane",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
+
         private void ZwrocSprzet()
         {
-            if (listaSprzetu.SelectedItem is not Sprzet wybranySprzet)
+            var zaznaczone = DaneTestowe.Sprzety
+                .Where(s => s.CzyZaznaczony && !s.CzyDostepny)
+                .ToList();
+
+            if (zaznaczone.Count == 0 &&
+                listaSprzetu.SelectedItem is Sprzet wybranySprzet &&
+                !wybranySprzet.CzyDostepny)
+            {
+                zaznaczone.Add(wybranySprzet);
+            }
+
+            if (zaznaczone.Count == 0)
             {
                 MessageBox.Show(
-                    "Najpierw wybierz sprzęt z listy.",
+                    "Zaznacz przynajmniej jeden wypożyczony przedmiot.",
                     "Brak wyboru",
                     MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    MessageBoxImage.Warning);
+
                 return;
             }
 
-            if (wybranySprzet.CzyDostepny)
+            foreach (Sprzet sprzet in zaznaczone)
             {
-                MessageBox.Show(
-                    "Ten sprzęt nie jest obecnie wypożyczony.",
-                    "Sprzęt dostępny",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
+                string osoba = sprzet.OsobaWypozyczajaca ?? "Nieznana osoba";
+
+                // ZAPIS DO HISTORII
+                DaneTestowe.Historia.Add(new HistoriaWpisu
+                {
+                    Data = DateTime.Now,
+                    NazwaSprzetu = sprzet.Nazwa,
+                    NumerSeryjny = sprzet.NumerSeryjny,
+                    Osoba = osoba,
+                    TypAkcji = "Zwrot"
+                });
+
+                sprzet.OsobaWypozyczajaca = null;
+                sprzet.CzyDostepny = true;
+                sprzet.CzyZaznaczony = false;
             }
 
-            string osoba = wybranySprzet.OsobaWypozyczajaca ?? "nieznanej osobie";
+            chkZaznaczWszystkie.IsChecked = false;
 
-            // ZAPIS DO HISTORII
-            DaneTestowe.Historia.Add(new HistoriaWpisu
-            {
-                Data = DateTime.Now,
-                NazwaSprzetu = wybranySprzet.Nazwa,
-                NumerSeryjny = wybranySprzet.NumerSeryjny,
-                Osoba = osoba,
-                TypAkcji = "Zwrot"
-            });
-
-            wybranySprzet.OsobaWypozyczajaca = null;
-            wybranySprzet.CzyDostepny = true;
             OdswiezListe();
 
+            string liczbaPrzedmiotow = zaznaczone.Count == 1
+                ? "przedmiot"
+                : zaznaczone.Count >= 2 && zaznaczone.Count <= 4
+                    ? "przedmioty"
+                    : "przedmiotów";
+
             MessageBox.Show(
-                $"Sprzęt został zwrócony przez: {osoba}.",
-                "Zwrot zapisany",
+                $"Zwrócono {zaznaczone.Count} {liczbaPrzedmiotow}.",
+                "Zwrot sprzętu",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
+
 
         private void OdswiezListe()
         {

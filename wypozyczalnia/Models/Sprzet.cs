@@ -15,5 +15,6 @@ namespace wypozyczalnia.Models
         public bool CzyDostepny { get; set; } = true;
         public string? OsobaWypozyczajaca { get; set; }
         public string Status => CzyDostepny ? "Dostępny" : "Wypożyczony";
+        public bool CzyZaznaczony { get; set; }
     }
 }
