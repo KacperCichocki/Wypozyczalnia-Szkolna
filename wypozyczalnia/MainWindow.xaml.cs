@@ -20,13 +20,33 @@ namespace wypozyczalnia
     public partial class MainWindow : Window
     {
         private bool trybZwrotu;
+        private readonly PostgresRepository repository = null!;
+        private List<Sprzet> sprzety = new();
 
         public MainWindow()
         {
             InitializeComponent();
-
-            listaSprzetu.ItemsSource = DaneTestowe.Sprzety;
+            try
+            {
+                repository = new PostgresRepository();
+                repository.Initialize();
+                OdswiezDane();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Nie można połączyć się z bazą PostgreSQL. Sprawdź konfigurację SCHOOL_RENTAL_DB i dostępność serwera.\n\nSzczegóły: {ex.Message}",
+                    "Błąd połączenia z bazą", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
+                return;
+            }
+            listaSprzetu.ItemsSource = sprzety;
             txtSzukaj.Text = "";
+        }
+
+        private void OdswiezDane()
+        {
+            sprzety = repository.GetEquipment();
         }
         private void chkZaznaczWszystkie_Checked(
     object sender, RoutedEventArgs e)
@@ -60,7 +80,7 @@ namespace wypozyczalnia
         private void txtSzukaj_TextChanged(
             object sender, TextChangedEventArgs e)
         {
-            foreach (Sprzet sprzet in DaneTestowe.Sprzety)
+            foreach (Sprzet sprzet in sprzety)
                 sprzet.CzyZaznaczony = false;
 
             chkZaznaczWszystkie.IsChecked = false;
@@ -76,7 +96,7 @@ namespace wypozyczalnia
                 return;
             }
 
-            var zaznaczone = DaneTestowe.Sprzety
+            var zaznaczone = sprzety
                 .Where(s => s.CzyZaznaczony && s.CzyDostepny)
                 .ToList();
 
@@ -108,20 +128,17 @@ namespace wypozyczalnia
 
             string osoba = oknoWypozyczenia.OsobaWypozyczajaca;
 
-            foreach (Sprzet sprzet in zaznaczone)
+            try
             {
-                sprzet.OsobaWypozyczajaca = osoba;
-                sprzet.CzyDostepny = false;
-                sprzet.CzyZaznaczony = false;
-
-                DaneTestowe.Historia.Add(new HistoriaWpisu
-                {
-                    Data = DateTime.Now,
-                    NazwaSprzetu = sprzet.Nazwa,
-                    NumerSeryjny = sprzet.NumerSeryjny,
-                    Osoba = osoba,
-                    TypAkcji = "Wypożyczenie"
-                });
+                repository.Borrow(zaznaczone, osoba);
+                OdswiezDane();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Nie udało się zapisać wypożyczenia: {ex.Message}", "Błąd bazy danych",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                OdswiezDane();
+                return;
             }
 
             chkZaznaczWszystkie.IsChecked = false;
@@ -143,7 +160,7 @@ namespace wypozyczalnia
 
         private void ZwrocSprzet()
         {
-            var zaznaczone = DaneTestowe.Sprzety
+            var zaznaczone = sprzety
                 .Where(s => s.CzyZaznaczony && !s.CzyDostepny)
                 .ToList();
 
@@ -165,23 +182,17 @@ namespace wypozyczalnia
                 return;
             }
 
-            foreach (Sprzet sprzet in zaznaczone)
+            try
             {
-                string osoba = sprzet.OsobaWypozyczajaca ?? "Nieznana osoba";
-
-                // ZAPIS DO HISTORII
-                DaneTestowe.Historia.Add(new HistoriaWpisu
-                {
-                    Data = DateTime.Now,
-                    NazwaSprzetu = sprzet.Nazwa,
-                    NumerSeryjny = sprzet.NumerSeryjny,
-                    Osoba = osoba,
-                    TypAkcji = "Zwrot"
-                });
-
-                sprzet.OsobaWypozyczajaca = null;
-                sprzet.CzyDostepny = true;
-                sprzet.CzyZaznaczony = false;
+                repository.Return(zaznaczone);
+                OdswiezDane();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Nie udało się zapisać zwrotu: {ex.Message}", "Błąd bazy danych",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                OdswiezDane();
+                return;
             }
 
             chkZaznaczWszystkie.IsChecked = false;
@@ -205,7 +216,7 @@ namespace wypozyczalnia
         private void OdswiezListe()
         {
             string fraza = txtSzukaj.Text.ToLower();
-            listaSprzetu.ItemsSource = DaneTestowe.Sprzety
+            listaSprzetu.ItemsSource = sprzety
                 .Where(s => s.Nazwa.ToLower().Contains(fraza)
                          || s.Kategoria.ToLower().Contains(fraza)
                          || s.NumerSeryjny.ToLower().Contains(fraza))
@@ -248,7 +259,16 @@ namespace wypozyczalnia
             btnAkcja.Visibility = Visibility.Collapsed;
 
             listaSprzetu.Visibility = Visibility.Collapsed;
-            listaHistorii.ItemsSource = DaneTestowe.Historia;
+            try
+            {
+                listaHistorii.ItemsSource = repository.GetHistory();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Nie udało się pobrać historii: {ex.Message}", "Błąd bazy danych",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             listaHistorii.Visibility = Visibility.Visible;
         }
     }
